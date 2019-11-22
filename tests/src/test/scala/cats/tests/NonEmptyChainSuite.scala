@@ -109,7 +109,7 @@ class NonEmptyChainSuite extends CatsSuite {
 
   test("fromSeq . toList . iterator is id") {
     forAll { (ci: NonEmptyChain[Int]) =>
-      NonEmptyChain.fromSeq(ci.iterator.toList) should ===(Option(ci))
+      NonEmptyChain.fromSeq(ci.iterator.toSeq) should ===(Option(ci))
     }
   }
 
@@ -161,4 +161,7 @@ class ReducibleNonEmptyChainSuite extends ReducibleSuite[NonEmptyChain]("NonEmpt
 
   def range(start: Long, endInclusive: Long): NonEmptyChain[Long] =
     NonEmptyChain(start, (start + 1L).to(endInclusive): _*)
+
+  def rangeE[L, R](el: Either[L, R], els: Either[L, R]*): NonEmptyChain[Either[L, R]] =
+    NonEmptyChain(el, els: _*)
 }

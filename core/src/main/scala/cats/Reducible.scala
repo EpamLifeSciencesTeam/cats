@@ -1,7 +1,7 @@
 package cats
 
 import cats.data.{Ior, NonEmptyList}
-import simulacrum.typeclass
+import simulacrum.{noop, typeclass}
 
 /**
  * Data structures that can be reduced to a summary value.
@@ -55,6 +55,22 @@ import simulacrum.typeclass
     reduceLeftTo(fa)(f)((b, a) => B.combine(b, f(a)))
 
   /**
+   * Apply `f` to each element of `fa` and combine them using the
+   * given `SemigroupK[G]`.
+   *
+   * {{{
+   * scala> import cats._, cats.data._, cats.implicits._
+   * scala> val f: Int => Endo[String] = i => (s => s + i)
+   * scala> val x: Endo[String] = Reducible[NonEmptyList].reduceMapK(NonEmptyList.of(1, 2, 3))(f)
+   * scala> val a = x("foo")
+   * a: String = "foo321"
+   * }}}
+   * */
+  @noop
+  def reduceMapK[G[_], A, B](fa: F[A])(f: A => G[B])(implicit G: SemigroupK[G]): G[B] =
+    reduceLeftTo(fa)(f)((b, a) => G.combineK(b, f(a)))
+
+  /**
    * Apply `f` to the "initial element" of `fa` and combine it with
    * every other value using the given function `g`.
    */
@@ -65,6 +81,22 @@ import simulacrum.typeclass
    */
   def reduceLeftM[G[_], A, B](fa: F[A])(f: A => G[B])(g: (B, A) => G[B])(implicit G: FlatMap[G]): G[B] =
     reduceLeftTo(fa)(f)((gb, a) => G.flatMap(gb)(g(_, a)))
+
+  /**
+   * Reduce a `F[G[A]]` value using `Applicative[G]` and `Semigroup[A]`, a universal
+   * semigroup for `G[_]`.
+   *
+   * `noop` usage description [[https://github.com/typelevel/simulacrum/issues/162 here]]
+   */
+  @noop def reduceA[G[_], A](fga: F[G[A]])(implicit G: Apply[G], A: Semigroup[A]): G[A] =
+    reduce(fga)(Apply.semigroup)
+
+  /**
+   * Apply `f` to each `a` of `fa` and combine the result into Apply[G] using the
+   * given `Semigroup[B]`.
+   */
+  def reduceMapA[G[_], A, B](fa: F[A])(f: A => G[B])(implicit G: Apply[G], B: Semigroup[B]): G[B] =
+    reduceLeftTo(fa)(f)((gb, a) => G.map2(gb, f(a))(B.combine))
 
   /**
    * Monadic reducing by mapping the `A` values to `G[B]`. combining

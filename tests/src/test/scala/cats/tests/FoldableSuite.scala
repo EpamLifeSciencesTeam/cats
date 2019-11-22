@@ -214,6 +214,20 @@ abstract class FoldableSuite[F[_]: Foldable](name: String)(implicit ArbFInt: Arb
     }
   }
 
+  test(s"Foldable[$name].combineAllOption") {
+    forAll { (fa: F[Int]) =>
+      fa.combineAllOption should ===(fa.toList.combineAllOption)
+      fa.combineAllOption should ===(iterator(fa).toList.combineAllOption)
+    }
+  }
+
+  test(s"Foldable[$name].iterable") {
+    forAll { (fa: F[Int]) =>
+      fa.toIterable.toList should ===(fa.toList)
+      fa.toIterable.toList should ===(iterator(fa).toList)
+    }
+  }
+
   test(s"Foldable[$name].intercalate") {
     forAll { (fa: F[String], a: String) =>
       fa.intercalate(a) should ===(fa.toList.mkString(a))
@@ -440,6 +454,20 @@ class FoldableSuiteAdditional extends CatsSuite with ScalaVersionSpecificFoldabl
 
     def foldRight[A, B](fa: Stream[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
       Foldable[Stream].foldRight(fa, lb)(f)
+  }
+
+  test(".foldA successful case") {
+    implicit val F = foldableStreamWithDefaultImpl
+    val ns = Stream.apply[Either[String, Int]](1.asRight, 2.asRight, 7.asRight)
+
+    assert(F.foldA(ns) == 10.asRight[String])
+  }
+
+  test(".foldA failed case") {
+    implicit val F = foldableStreamWithDefaultImpl
+    val ns = Stream.apply[Either[String, Int]](1.asRight, "boom!!!".asLeft, 7.asRight)
+
+    assert(ns.foldA == "boom!!!".asLeft[Int])
   }
 
   test(".foldLeftM short-circuiting") {
