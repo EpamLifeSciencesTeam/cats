@@ -53,7 +53,16 @@ trait ApplicativeErrorTests[F[_], E] extends ApplicativeTests[F] {
           laws.attemptFromEitherConsistentWithPure[A] _
         ),
         "applicativeError onError pure" -> forAll(laws.onErrorPure[A] _),
-        "applicativeError onError raise" -> forAll(laws.onErrorRaise[A] _)
+        "applicativeError onError raise" -> forAll(laws.onErrorRaise[A] _),
+        "applicativeError adaptError pure" -> forAll(laws.adaptErrorPure[A] _),
+        "applicativeError adaptError raise" -> forAll(laws.adaptErrorRaise[A] _),
+        "applicativeError redeem is derived from attempt and map" -> forAll(laws.redeemDerivedFromAttemptMap[A, B] _),
+        "applicativeError handleError . raiseError left-distributes over ap" -> forAll(
+          laws.raiseErrorDistributesOverApLeft[A] _
+        ),
+        "applicativeError handleError . raiseError right-distributes over ap" -> forAll(
+          laws.raiseErrorDistributesOverApRight[A] _
+        )
       )
     }
 }

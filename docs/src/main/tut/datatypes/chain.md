@@ -74,7 +74,7 @@ In code it looks like this:
 ```tut:book
 sealed abstract class Chain[+A]
 
-final case object Empty extends Chain[Nothing]
+case object Empty extends Chain[Nothing]
 final case class Singleton[A](a: A) extends Chain[A]
 final case class Append[A](left: Chain[A], right: Chain[A]) extends Chain[A]
 final case class Wrap[A](seq: Seq[A]) extends Chain[A]
@@ -118,7 +118,7 @@ This unbalanced tree will always allow iteration in linear time.
 ## NonEmptyChain 
 
 `NonEmptyChain` is the non empty version of `Chain` it does not have a `Monoid` instance since it cannot be empty, but it does have a `Semigroup` instance.
-Likewise, it defines a `NonEmptyTraverse` instace, but no `TraverseFilter` instance.
+Likewise, it defines a `NonEmptyTraverse` instance, but no `TraverseFilter` instance.
 
 There are numerous ways to construct a `NonEmptyChain`, e.g. you can create one from a single element, a `NonEmptyList` or a `NonEmptyVector`:
 

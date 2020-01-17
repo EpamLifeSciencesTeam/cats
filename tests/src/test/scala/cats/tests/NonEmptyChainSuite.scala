@@ -27,14 +27,14 @@ class NonEmptyChainSuite extends CatsSuite {
   checkAll("Align[NonEmptyChain]", SerializableTests.serializable(Align[NonEmptyChain]))
 
   {
-    implicit val partialOrder = ListWrapper.partialOrder[Int]
+    implicit val partialOrder: PartialOrder[ListWrapper[Int]] = ListWrapper.partialOrder[Int]
     checkAll("NonEmptyChain[ListWrapper[Int]]", PartialOrderTests[NonEmptyChain[ListWrapper[Int]]].partialOrder)
     checkAll("PartialOrder[NonEmptyChain[ListWrapper[Int]]",
              SerializableTests.serializable(PartialOrder[NonEmptyChain[ListWrapper[Int]]]))
   }
 
   {
-    implicit val eqv = ListWrapper.eqv[Int]
+    implicit val eqv: Eq[ListWrapper[Int]] = ListWrapper.eqv[Int]
     checkAll("NonEmptyChain[ListWrapper[Int]]", EqTests[NonEmptyChain[ListWrapper[Int]]].eqv)
     checkAll("Eq[NonEmptyChain[ListWrapper[Int]]", SerializableTests.serializable(Eq[NonEmptyChain[ListWrapper[Int]]]))
   }
@@ -109,7 +109,7 @@ class NonEmptyChainSuite extends CatsSuite {
 
   test("fromSeq . toList . iterator is id") {
     forAll { (ci: NonEmptyChain[Int]) =>
-      NonEmptyChain.fromSeq(ci.iterator.toList) should ===(Option(ci))
+      NonEmptyChain.fromSeq(ci.iterator.toSeq) should ===(Option(ci))
     }
   }
 
@@ -138,19 +138,19 @@ class NonEmptyChainSuite extends CatsSuite {
   }
 
   test("NonEmptyChain#distinct is consistent with List#distinct") {
-    forAll { ci: NonEmptyChain[Int] =>
+    forAll { (ci: NonEmptyChain[Int]) =>
       ci.distinct.toList should ===(ci.toList.distinct)
     }
   }
 
   test("init") {
-    forAll { ci: NonEmptyChain[Int] =>
+    forAll { (ci: NonEmptyChain[Int]) =>
       ci.init.toList should ===(ci.toList.init)
     }
   }
 
   test("last") {
-    forAll { ci: NonEmptyChain[Int] =>
+    forAll { (ci: NonEmptyChain[Int]) =>
       ci.last should ===(ci.toList.last)
     }
   }
@@ -161,4 +161,6 @@ class ReducibleNonEmptyChainSuite extends ReducibleSuite[NonEmptyChain]("NonEmpt
 
   def range(start: Long, endInclusive: Long): NonEmptyChain[Long] =
     NonEmptyChain(start, (start + 1L).to(endInclusive): _*)
+
+  def fromValues[A](el: A, els: A*): NonEmptyChain[A] = NonEmptyChain(el, els: _*)
 }

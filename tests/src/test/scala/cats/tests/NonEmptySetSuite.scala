@@ -40,7 +40,7 @@ class NonEmptySetSuite extends CatsSuite {
   checkAll("NonEmptySet[String]", HashTests[NonEmptySet[String]].hash)
 
   {
-    implicit val A = ListWrapper.order[Int]
+    implicit val A: Order[ListWrapper[Int]] = ListWrapper.order[Int]
     checkAll("Eq[NonEmptySet[ListWrapper[Int]]]", SerializableTests.serializable(Eq[NonEmptySet[ListWrapper[Int]]]))
 
     checkAll("NonEmptySet[ListWrapper[Int]]", OrderTests[NonEmptySet[ListWrapper[Int]]].order)
@@ -197,17 +197,17 @@ class NonEmptySetSuite extends CatsSuite {
   }
 
   test("fromSet round trip") {
-    forAll { l: SortedSet[Int] =>
+    forAll { (l: SortedSet[Int]) =>
       NonEmptySet.fromSet(l).map(_.toSortedSet).getOrElse(SortedSet.empty[Int]) should ===(l)
     }
 
-    forAll { nes: NonEmptySet[Int] =>
+    forAll { (nes: NonEmptySet[Int]) =>
       NonEmptySet.fromSet(nes.toSortedSet) should ===(Some(nes))
     }
   }
 
   test("fromSetUnsafe/fromSet consistency") {
-    forAll { nes: NonEmptySet[Int] =>
+    forAll { (nes: NonEmptySet[Int]) =>
       NonEmptySet.fromSet(nes.toSortedSet) should ===(Some(NonEmptySet.fromSetUnsafe(nes.toSortedSet)))
     }
   }
@@ -225,13 +225,13 @@ class NonEmptySetSuite extends CatsSuite {
   }
 
   test("NonEmptySet#zipWithIndex is consistent with Set#zipWithIndex") {
-    forAll { nes: NonEmptySet[Int] =>
+    forAll { (nes: NonEmptySet[Int]) =>
       nes.zipWithIndex.toSortedSet should ===(nes.toSortedSet.zipWithIndex)
     }
   }
 
   test("NonEmptySet#length is consistent with Set#size") {
-    forAll { nes: NonEmptySet[Int] =>
+    forAll { (nes: NonEmptySet[Int]) =>
       nes.length should ===(nes.toSortedSet.size)
     }
   }

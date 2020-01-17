@@ -314,7 +314,7 @@ class NonEmptyLazyListOps[A](private val value: NonEmptyLazyList[A]) extends Any
    * Remove duplicates. Duplicates are checked using `Order[_]` instance.
    */
   def distinct[AA >: A](implicit O: Order[AA]): NonEmptyLazyList[AA] = {
-    implicit val ord = O.toOrdering
+    implicit val ord: Ordering[AA] = O.toOrdering
 
     val buf = LazyList.newBuilder[AA]
     toLazyList.foldLeft(TreeSet.empty[AA]) { (elementsSoFar, a) =>
@@ -386,8 +386,8 @@ sealed abstract private[data] class NonEmptyLazyListInstances extends NonEmptyLa
       def monad: Monad[NonEmptyLazyList] = NonEmptyLazyList.catsDataInstancesForNonEmptyLazyList
 
       def sequential: OneAnd[ZipLazyList, *] ~> NonEmptyLazyList =
-        λ[OneAnd[ZipLazyList, *] ~> NonEmptyLazyList](
-          znell => NonEmptyLazyList.fromLazyListPrepend(znell.head, znell.tail.value)
+        λ[OneAnd[ZipLazyList, *] ~> NonEmptyLazyList](znell =>
+          NonEmptyLazyList.fromLazyListPrepend(znell.head, znell.tail.value)
         )
 
       def parallel: NonEmptyLazyList ~> OneAnd[ZipLazyList, *] =

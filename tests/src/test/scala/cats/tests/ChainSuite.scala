@@ -42,20 +42,20 @@ class ChainSuite extends CatsSuite {
   checkAll("TraverseFilter[Chain]", SerializableTests.serializable(TraverseFilter[Chain]))
 
   {
-    implicit val partialOrder = ListWrapper.partialOrder[Int]
+    implicit val partialOrder: PartialOrder[ListWrapper[Int]] = ListWrapper.partialOrder[Int]
     checkAll("Chain[ListWrapper[Int]]", PartialOrderTests[Chain[ListWrapper[Int]]].partialOrder)
     checkAll("PartialOrder[Chain[ListWrapper[Int]]",
              SerializableTests.serializable(PartialOrder[Chain[ListWrapper[Int]]]))
   }
 
   {
-    implicit val eqv = ListWrapper.eqv[Int]
+    implicit val eqv: Eq[ListWrapper[Int]] = ListWrapper.eqv[Int]
     checkAll("Chain[ListWrapper[Int]]", EqTests[Chain[ListWrapper[Int]]].eqv)
     checkAll("Eq[Chain[ListWrapper[Int]]", SerializableTests.serializable(Eq[Chain[ListWrapper[Int]]]))
   }
 
   {
-    implicit val hash = ListWrapper.hash[Int]
+    implicit val hash: Hash[ListWrapper[Int]] = ListWrapper.hash[Int]
     checkAll("Chain[ListWrapper[Int]]", HashTests[Chain[ListWrapper[Int]]].hash)
     checkAll("Hash[Chain[ListWrapper[Int]]", SerializableTests.serializable(Hash[Chain[ListWrapper[Int]]]))
   }
@@ -63,7 +63,7 @@ class ChainSuite extends CatsSuite {
   test("show") {
     Show[Chain[Int]].show(Chain(1, 2, 3)) should ===("Chain(1, 2, 3)")
     Chain.empty[Int].show should ===("Chain()")
-    forAll { l: Chain[String] =>
+    forAll { (l: Chain[String]) =>
       l.show should ===(l.toString)
     }
   }
@@ -215,7 +215,7 @@ class ChainSuite extends CatsSuite {
   }
 
   test("Chain#distinct is consistent with List#distinct") {
-    forAll { a: Chain[Int] =>
+    forAll { (a: Chain[Int]) =>
       a.distinct.toList should ===(a.toList.distinct)
     }
   }

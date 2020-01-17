@@ -356,7 +356,7 @@ final case class EitherT[F[_], A, B](value: F[Either[A, B]]) {
     })
 
   def flatMapF[AA >: A, D](f: B => F[Either[AA, D]])(implicit F: Monad[F]): EitherT[F, AA, D] =
-    flatMap(f.andThen(EitherT.apply))
+    flatMap(b => EitherT(f(b)))
 
   def transform[C, D](f: Either[A, B] => Either[C, D])(implicit F: Functor[F]): EitherT[F, C, D] =
     EitherT(F.map(value)(f))
@@ -946,13 +946,12 @@ private[data] trait EitherTMonad[F[_], L] extends Monad[EitherT[F, L, *]] with E
   def flatMap[A, B](fa: EitherT[F, L, A])(f: A => EitherT[F, L, B]): EitherT[F, L, B] = fa.flatMap(f)
   def tailRecM[A, B](a: A)(f: A => EitherT[F, L, Either[A, B]]): EitherT[F, L, B] =
     EitherT(
-      F.tailRecM(a)(
-        a0 =>
-          F.map(f(a0).value) {
-            case Left(l)         => Right(Left(l))
-            case Right(Left(a1)) => Left(a1)
-            case Right(Right(b)) => Right(Right(b))
-          }
+      F.tailRecM(a)(a0 =>
+        F.map(f(a0).value) {
+          case Left(l)         => Right(Left(l))
+          case Right(Left(a1)) => Left(a1)
+          case Right(Right(b)) => Right(Right(b))
+        }
       )
     )
 }

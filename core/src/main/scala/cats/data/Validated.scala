@@ -389,8 +389,10 @@ sealed abstract class Validated[+E, +A] extends Product with Serializable {
    * res1: Validated[List[String] ,Option[Int]] = Valid(Some(123))
    * }}}
    */
-  def bimap[EE, AA](fe: E => EE, fa: A => AA): Validated[EE, AA] =
-    fold(fe.andThen(Invalid.apply), fa.andThen(Valid.apply))
+  def bimap[EE, AA](fe: E => EE, fa: A => AA): Validated[EE, AA] = this match {
+    case Valid(a)   => Valid(fa(a))
+    case Invalid(e) => Invalid(fe(e))
+  }
 
   /**
    * Example:
@@ -811,6 +813,8 @@ object Validated extends ValidatedInstances with ValidatedFunctions with Validat
    * Uses the [[http://typelevel.org/cats/guidelines.html#partially-applied-type-params Partially Applied Type Params technique]] for ergonomics.
    */
   final private[data] class CatchOnlyPartiallyApplied[T](private val dummy: Boolean = true) extends AnyVal {
+    /* Note: the NT parameter is not referenced at runtime, but serves a compile-time role.
+     * See https://github.com/typelevel/cats/pull/1867/files#r138381991 for details. */
     def apply[A](f: => A)(implicit T: ClassTag[T], NT: NotNull[T]): Validated[T, A] =
       try {
         valid(f)

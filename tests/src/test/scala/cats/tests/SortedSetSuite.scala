@@ -11,7 +11,7 @@ import cats.laws.discipline.{FoldableTests, SemigroupKTests, SemigroupalTests, S
 import scala.collection.immutable.SortedSet
 
 class SortedSetSuite extends CatsSuite {
-  implicit val iso = SortedSetIsomorphism
+  implicit val iso: Isomorphisms[SortedSet] = SortedSetIsomorphism
 
   checkAll("SortedSet[Int]", SemigroupKTests[SortedSet].semigroupK[Int])
   checkAll("SortedSet[Int]", SemigroupalTests[SortedSet].semigroupal[Int, Int, Int])
@@ -54,19 +54,21 @@ object SortedSetIsomorphism extends Isomorphisms[SortedSet] {
   override def associativity[A, B, C](
     fs: (SortedSet[(A, (B, C))], SortedSet[((A, B), C)])
   ): IsEq[SortedSet[(A, B, C)]] = {
-    implicit val ord = Ordering.by[(A, B, C), ((A, B), C)] { case (a, b, c) => ((a, b), c) }(fs._2.ordering)
+    implicit val ord: Ordering[(A, B, C)] = Ordering.by[(A, B, C), ((A, B), C)] { case (a, b, c) => ((a, b), c) }(
+      fs._2.ordering
+    )
 
     fs._1.map { case (a, (b, c))   => (a, b, c) } <->
       fs._2.map { case ((a, b), c) => (a, b, c) }
   }
 
   override def leftIdentity[A](fs: (SortedSet[(Unit, A)], SortedSet[A])): IsEq[SortedSet[A]] = {
-    implicit val ordering = fs._2.ordering
+    implicit val ordering: Ordering[A] = fs._2.ordering
     fs._1.map(_._2) <-> fs._2
   }
 
   override def rightIdentity[A](fs: (SortedSet[(A, Unit)], SortedSet[A])): IsEq[SortedSet[A]] = {
-    implicit val ordering = fs._2.ordering
+    implicit val ordering: Ordering[A] = fs._2.ordering
     fs._1.map(_._1) <-> fs._2
   }
 }

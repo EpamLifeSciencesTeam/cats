@@ -67,6 +67,20 @@ trait OptionInstances extends cats.kernel.instances.OptionInstances {
 
       def handleErrorWith[A](fa: Option[A])(f: (Unit) => Option[A]): Option[A] = fa.orElse(f(()))
 
+      override def redeem[A, B](fa: Option[A])(recover: Unit => B, map: A => B): Option[B] =
+        fa match {
+          case Some(a) => Some(map(a))
+          // N.B. not pattern matching `case None` on purpose
+          case _ => Some(recover(()))
+        }
+
+      override def redeemWith[A, B](fa: Option[A])(recover: Unit => Option[B], bind: A => Option[B]): Option[B] =
+        fa match {
+          case Some(a) => bind(a)
+          // N.B. not pattern matching `case None` on purpose
+          case _ => recover(())
+        }
+
       def traverse[G[_]: Applicative, A, B](fa: Option[A])(f: A => G[B]): G[Option[B]] =
         fa match {
           case None    => Applicative[G].pure(None)
@@ -153,6 +167,8 @@ private[instances] trait OptionInstancesBinCompat0 {
     override def mapFilter[A, B](fa: Option[A])(f: (A) => Option[B]): Option[B] = fa.flatMap(f)
 
     override def filter[A](fa: Option[A])(f: (A) => Boolean): Option[A] = fa.filter(f)
+
+    override def filterNot[A](fa: Option[A])(f: A => Boolean): Option[A] = fa.filterNot(f)
 
     override def collect[A, B](fa: Option[A])(f: PartialFunction[A, B]): Option[B] = fa.collect(f)
 

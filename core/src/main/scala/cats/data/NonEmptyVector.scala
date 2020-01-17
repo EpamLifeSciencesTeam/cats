@@ -195,7 +195,7 @@ final class NonEmptyVector[+A] private (val toVector: Vector[A]) extends AnyVal 
    * Remove duplicates. Duplicates are checked using `Order[_]` instance.
    */
   def distinct[AA >: A](implicit O: Order[AA]): NonEmptyVector[AA] = {
-    implicit val ord = O.toOrdering
+    implicit val ord: Ordering[AA] = O.toOrdering
 
     val buf = Vector.newBuilder[AA]
     tail.foldLeft(TreeSet(head: AA)) { (elementsSoFar, a) =>
@@ -215,7 +215,7 @@ final class NonEmptyVector[+A] private (val toVector: Vector[A]) extends AnyVal 
    * scala> import cats.data.NonEmptyVector
    * scala> val as = NonEmptyVector.of(1, 2, 3)
    * scala> val bs = NonEmptyVector.of("A", "B", "C")
-   * scala> as.zipWith(bs)(_ + _)
+   * scala> as.zipWith(bs)(_.toString + _)
    * res0: cats.data.NonEmptyVector[String] = NonEmptyVector(1A, 2B, 3C)
    * }}}
    */
@@ -317,14 +317,13 @@ sealed abstract private[data] class NonEmptyVectorInstances {
         import cats.syntax.either._
         import cats.syntax.reducible._
 
-        reduceLeftTo(fa)(a => f(a).bimap(NonEmptyVector.one, NonEmptyVector.one).toIor)(
-          (ior, a) =>
-            (f(a), ior) match {
-              case (Right(c), Ior.Left(_)) => ior.putRight(NonEmptyVector.one(c))
-              case (Right(c), _)           => ior.map(_ :+ c)
-              case (Left(b), Ior.Right(_)) => ior.putLeft(NonEmptyVector.one(b))
-              case (Left(b), _)            => ior.leftMap(_ :+ b)
-            }
+        reduceLeftTo(fa)(a => f(a).bimap(NonEmptyVector.one, NonEmptyVector.one).toIor)((ior, a) =>
+          (f(a), ior) match {
+            case (Right(c), Ior.Left(_)) => ior.putRight(NonEmptyVector.one(c))
+            case (Right(c), _)           => ior.map(_ :+ c)
+            case (Left(b), Ior.Right(_)) => ior.putLeft(NonEmptyVector.one(b))
+            case (Left(b), _)            => ior.leftMap(_ :+ b)
+          }
         ).bimap(_.toNonEmptyList, _.toNonEmptyList)
 
       }

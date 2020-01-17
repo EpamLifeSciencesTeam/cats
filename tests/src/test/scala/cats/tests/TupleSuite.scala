@@ -5,12 +5,13 @@ import data.NonEmptyList
 
 import cats.laws.discipline._
 import cats.laws.discipline.arbitrary._
+import cats.laws.discipline.SemigroupalTests.Isomorphisms
 import Helpers.CSemi
 
 class TupleSuite extends CatsSuite {
 
-  implicit val iso1 = SemigroupalTests.Isomorphisms.invariant[(NonEmptyList[Int], *)]
-  implicit val iso2 = SemigroupalTests.Isomorphisms.invariant[(String, *)]
+  implicit val iso1: Isomorphisms[(NonEmptyList[Int], *)] = Isomorphisms.invariant[(NonEmptyList[Int], *)]
+  implicit val iso2: Isomorphisms[(String, *)] = Isomorphisms.invariant[(String, *)]
 
   checkAll("Tuple2", BitraverseTests[Tuple2].bitraverse[Option, Int, Int, Int, String, String, String])
   checkAll("Bitraverse[Tuple2]", SerializableTests.serializable(Bitraverse[Tuple2]))
@@ -49,16 +50,16 @@ class TupleSuite extends CatsSuite {
 
   test("eqv") {
     val eq = Eq[(Int, Long)]
-    forAll { t: (Int, Long) =>
+    forAll { (t: (Int, Long)) =>
       eq.eqv(t, t) should ===(true)
     }
-    forAll { t: (Int, Long) =>
+    forAll { (t: (Int, Long)) =>
       eq.eqv(t, t._1 -> (t._2 + 1)) should ===(false)
     }
   }
 
   test("order") {
-    forAll { t: (Int, Int) =>
+    forAll { (t: (Int, Int)) =>
       val u = t.swap
       Order[(Int, Int)].compare(t, u) should ===(scala.math.Ordering[(Int, Int)].compare(t, u))
     }
@@ -67,7 +68,7 @@ class TupleSuite extends CatsSuite {
   test("show") {
     (1, 2).show should ===("(1,2)")
 
-    forAll { fs: (String, String) =>
+    forAll { (fs: (String, String)) =>
       fs.show should ===(fs.toString)
     }
 

@@ -6,11 +6,12 @@ import cats.laws.discipline._
 import cats.kernel.laws.discipline.{EqTests, MonoidTests, OrderTests, PartialOrderTests, SemigroupTests}
 import org.scalatest.funsuite.AnyFunSuiteLike
 import cats.laws.discipline.arbitrary._
+import cats.laws.discipline.SemigroupalTests.Isomorphisms
 
 import scala.util.Try
 
 class EitherSuite extends CatsSuite {
-  implicit val iso = SemigroupalTests.Isomorphisms.invariant[Either[Int, *]]
+  implicit val iso: Isomorphisms[Either[Int, *]] = Isomorphisms.invariant[Either[Int, *]]
 
   checkAll("Either[String, Int]", MonoidTests[Either[String, Int]].monoid)
   checkAll("Monoid[Either[String, Int]]", SerializableTests.serializable(Monoid[Either[String, Int]]))
@@ -21,7 +22,7 @@ class EitherSuite extends CatsSuite {
   checkAll("Either[Int, Int]", AlignTests[Either[Int, *]].align[Int, Int, Int, Int])
   checkAll("Align[Either[Int, *]]", SerializableTests.serializable(Align[Either[Int, *]]))
 
-  implicit val eq0 = EitherT.catsDataEqForEitherT[Either[Int, *], Int, Int]
+  implicit val eq0: Eq[EitherT[Either[Int, *], Int, Int]] = EitherT.catsDataEqForEitherT[Either[Int, *], Int, Int]
 
   checkAll("Either[Int, Int]", MonadErrorTests[Either[Int, *], Int].monadError[Int, Int, Int])
   checkAll("MonadError[Either[Int, *]]", SerializableTests.serializable(MonadError[Either[Int, *], Int]))
@@ -46,8 +47,8 @@ class EitherSuite extends CatsSuite {
   val show = implicitly[Show[Either[Int, String]]]
 
   {
-    implicit val S = ListWrapper.eqv[String]
-    implicit val I = ListWrapper.eqv[Int]
+    implicit val S: Eq[ListWrapper[String]] = ListWrapper.eqv[String]
+    implicit val I: Eq[ListWrapper[Int]] = ListWrapper.eqv[Int]
     checkAll("Either[ListWrapper[String], ListWrapper[Int]]",
              EqTests[Either[ListWrapper[String], ListWrapper[Int]]].eqv)
     checkAll("Eq[Either[ListWrapper[String], ListWrapper[Int]]]",
@@ -108,7 +109,7 @@ class EitherSuite extends CatsSuite {
   }
 
   test("fromTry is left for failed Try") {
-    forAll { t: Try[Int] =>
+    forAll { (t: Try[Int]) =>
       t.isFailure should ===(Either.fromTry(t).isLeft)
     }
   }
@@ -120,13 +121,13 @@ class EitherSuite extends CatsSuite {
   }
 
   test("leftNel is consistent with left(NEL)") {
-    forAll { s: String =>
+    forAll { (s: String) =>
       Either.leftNel[String, Int](s) should ===(Either.left[NonEmptyList[String], Int](NonEmptyList.one(s)))
     }
   }
 
   test("rightNel is consistent with right") {
-    forAll { i: Int =>
+    forAll { (i: Int) =>
       Either.rightNel[String, Int](i) should ===(Either.right[NonEmptyList[String], Int](i))
     }
   }
@@ -138,23 +139,23 @@ class EitherSuite extends CatsSuite {
   }
 
   test("leftNec is consistent with left(NEC)") {
-    forAll { s: String =>
+    forAll { (s: String) =>
       Either.leftNec[String, Int](s) should ===(Either.left[NonEmptyChain[String], Int](NonEmptyChain.one(s)))
     }
   }
   test("rightNec is consistent with right") {
-    forAll { i: Int =>
+    forAll { (i: Int) =>
       Either.rightNec[String, Int](i) should ===(Either.right[NonEmptyChain[String], Int](i))
     }
   }
 
   test("leftNes is consistent with left(NES)") {
-    forAll { s: String =>
+    forAll { (s: String) =>
       Either.leftNes[String, Int](s) should ===(Either.left[NonEmptySet[String], Int](NonEmptySet.one(s)))
     }
   }
   test("rightNes is consistent with right") {
-    forAll { i: Int =>
+    forAll { (i: Int) =>
       Either.rightNes[String, Int](i) should ===(Either.right[NonEmptySet[String], Int](i))
     }
   }
